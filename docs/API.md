@@ -2,7 +2,7 @@
 
 Base URL (local): `http://localhost:8080`
 Authentication: `Authorization: Bearer <JWT>` on every endpoint except
-`POST /auth/login` and `GET /health`.
+`POST /auth/login`, `POST /auth/register` and `GET /health`.
 
 All request and response bodies are JSON. Dates use ISO-8601
 (`2021-07-21` for dates, `2026-11-17T05:30:00Z` for timestamps).
@@ -53,6 +53,49 @@ from `app.seed.admin-password`. Deployments set their own value through
 
 `400 Bad Request` — blank username or password (`fieldErrors.username`,
 `fieldErrors.password`).
+
+### `POST /auth/register` — public
+
+Creates an operator account and returns a session, so a fresh deployment can
+bootstrap itself without any pre-seeded user.
+
+```http
+POST /auth/register
+Content-Type: application/json
+
+{ "username": "jane.doe", "fullName": "Jane Doe", "password": "secret-passphrase" }
+```
+
+`201 Created`
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "expiresAt": "2026-11-17T13:30:00Z",
+  "user": { "id": 2, "username": "jane.doe", "fullName": "Jane Doe", "role": "ADMIN" }
+}
+```
+
+| Field | Rule |
+|---|---|
+| `username` | required, 3–60 characters, `[A-Za-z0-9._-]`, unique (case-insensitive) |
+| `fullName` | required, 2–80 characters |
+| `password` | required, 8–72 characters (stored as a BCrypt hash) |
+
+`409 Conflict` — username taken:
+
+```json
+{
+  "timestamp": "2026-11-17T05:30:00Z",
+  "status": 409,
+  "error": "Conflict",
+  "message": "Username 'jane.doe' is already taken.",
+  "path": "/auth/register",
+  "fieldErrors": { "username": "Username already exists." }
+}
+```
+
+`400 Bad Request` — validation failure, with `fieldErrors` for each offending field.
 
 ### `GET /auth/me` — Bearer required
 
@@ -175,6 +218,7 @@ Every error uses the same envelope:
 | 404 | Unknown vehicle id | `Vehicle with id 999 was not found.` |
 | 405 | Wrong HTTP verb | `Method 'PATCH' is not supported.` |
 | 409 | Duplicate `vehicleNumber` | `Vehicle number 'DHA-GA-11-2001' already exists.` |
+| 409 | Taken username | `Username 'jane.doe' is already taken.` |
 | 409 | Other SQL constraint violation | `The request conflicts with an existing record (database constraint).` |
 | 500 | Unexpected error | `Unexpected server error. Please try again.` |
 

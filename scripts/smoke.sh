@@ -78,6 +78,26 @@ AUTH=(-H "Authorization: Bearer ${TOKEN}")
 check "GET /vehicles without token -> 401" \
   "401" "$(status '' "$TMP_DIR/noauth.json" "${BASE_URL}/vehicles")"
 
+# ---------- Self-service registration ----------
+NEW_USER="smoke-$(date +%H%M%S)"
+REG_BODY="{\"username\":\"${NEW_USER}\",\"fullName\":\"Smoke Tester\",\"password\":\"smoke-passphrase\"}"
+
+check "POST /auth/register -> 201" \
+  "201" "$(status '' "$TMP_DIR/register.json" -X POST "${BASE_URL}/auth/register" \
+            -H 'Content-Type: application/json' -d "$REG_BODY")"
+
+check "register returns a JWT" \
+  "yes" "$([ -n "$(json_field "$TMP_DIR/register.json" "['token']")" ] && echo yes || echo no)"
+
+check "duplicate username -> 409" \
+  "409" "$(status '' "$TMP_DIR/register-dup.json" -X POST "${BASE_URL}/auth/register" \
+            -H 'Content-Type: application/json' -d "$REG_BODY")"
+
+check "new operator can sign in" \
+  "200" "$(status '' "$TMP_DIR/newlogin.json" -X POST "${BASE_URL}/auth/login" \
+            -H 'Content-Type: application/json' \
+            -d "{\"username\":\"${NEW_USER}\",\"password\":\"smoke-passphrase\"}")"
+
 # ---------- Paginated list ----------
 check "GET /vehicles?page=0&size=10 -> 200" \
   "200" "$(status '' "$TMP_DIR/list.json" "${BASE_URL}/vehicles?page=0&size=10&sort=vehicleNumber,asc" "${AUTH[@]}")"

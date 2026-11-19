@@ -9,13 +9,14 @@ live REST journey against a running server.
 |---|---|---|---|
 | Backend unit | `mvn test` | 10 | ✅ pass |
 | Backend API/integration | same run | 29 | ✅ pass |
+| Backend registration | same run | 10 | ✅ pass |
 | Backend CORS | same run | 4 | ✅ pass |
 | Backend DB constraint | same run | 1 | ✅ pass |
 | Backend full journey | same run | 1 | ✅ pass |
-| **Backend total** | | **45** | **✅ 45/45** |
+| **Backend total** | | **55** | **✅ 55/55** |
 | Flutter static analysis | `flutter analyze` (frontend repo) | — | ✅ 0 issues |
-| Flutter widget/contract | `flutter test` (frontend repo) | 41 | ✅ 41/41 |
-| Live REST smoke | `./scripts/smoke.sh` | 24 | ✅ 24/24 |
+| Flutter widget/contract | `flutter test` (frontend repo) | 47 | ✅ 47/47 |
+| Live REST smoke | `./scripts/smoke.sh` | 28 | ✅ 28/28 |
 | Flutter web release build | `flutter build web --release` (frontend repo) | — | ✅ built |
 
 Environment: Flutter 3.50.0 (Dart 3.14), Java 21.0.13, Maven 3.10.1,
@@ -30,6 +31,7 @@ Spring Boot 3.5.3, H2 2.3.232.
 | `VehicleServiceTest` | Mockito unit | Number normalization; duplicate rejection on create; duplicate rejection on update excluding self; DB-violation translation; every vehicle field copied onto the entity; delete 404; page-size clamping to 100; descending sort; unsafe sort field rejection |
 | `VehicleApiIT` | `@SpringBootTest` + MockMvc | 401 without token; required Page JSON keys and exactly 10 rows; `last` flag; out-of-range page; size clamp; unknown sort → 400; sort by company; create → 201 with all vehicle fields; status defaults to ACTIVE; get; 404; non-numeric id → 400; duplicate → 409 + message + field error; case-insensitive duplicate; update onto another number → 409; validation → 400 + field errors; bad pattern → 400; malformed JSON → 400; update persists; delete → 204 then 404; delete missing → 404 |
 | `AuthApiIT` | `@SpringBootTest` + MockMvc | login returns token/profile; wrong password → 401; unknown user → 401; blank credentials → 400; `/auth/me` with token; `/auth/me` without token → 401; invalid token → 401; `/health` is public |
+| `RegisterApiIT` | `@SpringBootTest` + MockMvc | register → 201 + JWT + profile; new operator can use `/auth/me` and `/vehicles`; can sign in later; password stored as BCrypt; duplicate username → 409 + field error; case-insensitive duplicate; short password, invalid username and blank full name → 400; no token required |
 | `CorsApiIT` | `@SpringBootTest` + MockMvc | any `localhost` port is accepted by pattern; the configured Netlify origin is accepted exactly; an unknown origin gets `403` with no `Access-Control-Allow-Origin`; simple requests from allowed origins carry the header |
 | `UniqueConstraintIT` | `@DataJpaTest` (real H2) | the unique index rejects a duplicate number even when the service check is bypassed |
 | `FullJourneyIT` | `@SpringBootTest` + MockMvc | login → register → list → duplicate 409 → edit → read → delete → 404 → empty last page |
@@ -80,32 +82,36 @@ java -jar target/vms-backend-1.0.0.jar
 ./scripts/smoke.sh
 ```
 
-Checks executed (24):
+Checks executed (28):
 
 1. `GET /health` public → 200
 2. login with wrong password → 401
 3. login with the bootstrap operator (`ADMIN_USER`/`ADMIN_PASS`, default `admin`/`admin123` locally) → 200 + JWT
 4. unauthenticated `/vehicles` → 401
-5. paginated list → 200
-6. Page payload contains `content, number, size, totalElements, totalPages, last`
-7. requested page size honoured
-8. out-of-range page → empty content
-9. register vehicle → 201
-10. number normalized to uppercase
-11. duplicate registration → 409
-12. 409 carries an error message
-13. 409 identifies `vehicleNumber`
-14. invalid payload → 400
-15. 400 carries a validation message
-16. 400 carries `fieldErrors.company`
-17. `GET /vehicles/{id}` → 200
-18. `PUT /vehicles/{id}` → 200
-19. update persisted model
-20. update persisted status
-21. update persisted company
-22. `DELETE /vehicles/{id}` → 204
-23. deleted vehicle → 404
-24. result summary must be 0 failures
+5. `POST /auth/register` → 201
+6. register returns a JWT
+7. duplicate username → 409
+8. new operator can sign in → 200
+9. paginated list → 200
+10. Page payload contains `content, number, size, totalElements, totalPages, last`
+11. requested page size honoured
+12. out-of-range page → empty content
+13. register vehicle → 201
+14. number normalized to uppercase
+15. duplicate vehicle number → 409
+16. 409 carries an error message
+17. 409 identifies `vehicleNumber`
+18. invalid payload → 400
+19. 400 carries a validation message
+20. 400 carries `fieldErrors.company`
+21. `GET /vehicles/{id}` → 200
+22. `PUT /vehicles/{id}` → 200
+23. update persisted model
+24. update persisted status
+25. update persisted company
+26. `DELETE /vehicles/{id}` → 204
+27. deleted vehicle → 404
+28. result summary must be 0 failures
 
 ---
 

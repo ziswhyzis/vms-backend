@@ -37,6 +37,19 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    /** Username already registered -> 409 with an error message. */
+    @ExceptionHandler(DuplicateUsernameException.class)
+    public ResponseEntity<ApiError> handleDuplicateUsername(DuplicateUsernameException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiError.of(
+                        HttpStatus.CONFLICT.value(),
+                        HttpStatus.CONFLICT.getReasonPhrase(),
+                        ex.getMessage(),
+                        request.getRequestURI(),
+                        Map.of("username", "Username already exists.")
+                ));
+    }
+
     /** Bean-validation failure -> 400 with an error message and per-field detail. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {

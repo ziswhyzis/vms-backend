@@ -59,13 +59,17 @@ Cross-cutting:
 | Token transport | `Authorization: Bearer <token>` |
 | Session | None — `SessionCreationPolicy.STATELESS` |
 | Token lifetime | 480 minutes (configurable) |
-| Public endpoints | `POST /auth/login`, `GET /health`, OPTIONS preflight, H2 console (dev) |
+| Public endpoints | `POST /auth/login`, `POST /auth/register`, `GET /health`, OPTIONS preflight, H2 console (dev) |
 | CORS | Explicit origin allow-list from `APP_CORS_ALLOWED_ORIGINS`; wildcard patterns (`http://localhost:[*]`) cover random dev-server ports, exact origins cover production |
 
 The Flutter client stores the token in browser `localStorage` (through
 `shared_preferences`), attaches it to every request, restores the session by
 calling `/auth/me` on reload, and signs out automatically on any `401` from an
 authenticated request.
+
+Self-service registration (`POST /auth/register`) creates a BCrypt-hashed
+operator and returns the same session payload as login, so a deployment with an
+empty `users` table is still usable.
 
 ### Duplicate Vehicle Number rule
 

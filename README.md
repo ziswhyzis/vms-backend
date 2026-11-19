@@ -10,7 +10,7 @@ the separate `vms-frontend` repository only talks to it over HTTP.
 | Framework | Spring Boot 3.5 (Web, Data JPA, Security, Validation) |
 | Database | H2 file database locally, PostgreSQL in production |
 | Auth | Stateless JWT (HS256) with BCrypt-hashed passwords |
-| Tests | JUnit 5 + MockMvc + Spring Data tests (45) |
+| Tests | JUnit 5 + MockMvc + Spring Data tests (55) |
 | Deploy | Render (Docker) + Render PostgreSQL |
 
 ## API
@@ -21,6 +21,7 @@ Base URL `http://localhost:8080`. Every endpoint except `POST /auth/login` and
 | Method | Path | Notes |
 |---|---|---|
 | POST | `/auth/login` | Returns a JWT and the operator profile |
+| POST | `/auth/register` | Creates an operator account and returns a JWT (`201`) |
 | GET | `/auth/me` | Current operator |
 | GET | `/vehicles?page=0&size=10&sort=vehicleNumber,asc` | Paginated register |
 | GET | `/vehicles/{id}` | One vehicle |
@@ -99,6 +100,11 @@ First run seeds 24 vehicles and one operator. The local bootstrap credentials
 are `admin` / `admin123`; both the username and password come from configuration
 and production supplies its own password (see below).
 
+If no account exists at all — for example after a fresh deployment without a
+bootstrap password — open the client and choose **Create an account**. The
+public `POST /auth/register` endpoint creates a BCrypt-hashed operator and signs
+it in immediately.
+
 The H2 file lives at `data/vmsdb` and is git-ignored. Delete `data/` to start
 from a clean database.
 
@@ -125,7 +131,7 @@ them rather than falling back to a development value.
 ## Tests
 
 ```bash
-mvn test      # 45 tests
+mvn test      # 55 tests
 ```
 
 | Suite | What it proves |
@@ -133,6 +139,7 @@ mvn test      # 45 tests
 | `VehicleServiceTest` | Duplicate rule, normalization, field mapping, clamping, sort allow-list (repository mocked) |
 | `VehicleApiIT` | Full HTTP contract: pagination shape, CRUD, 409/400/404, sort validation |
 | `AuthApiIT` | Login, bad credentials, `/auth/me`, token rejection, public health |
+| `RegisterApiIT` | Self-service sign-up, duplicate username, validation, BCrypt storage, protected access |
 | `CorsApiIT` | Any `localhost` port allowed, production origin exact, unknown origin `403` |
 | `UniqueConstraintIT` | The SQL unique index rejects duplicates bypassing the service |
 | `FullJourneyIT` | Login → register → list → duplicate → edit → delete |
@@ -141,7 +148,7 @@ A live smoke script exercises the packaged jar over real HTTP:
 
 ```bash
 java -jar target/vms-backend-1.0.0.jar &
-./scripts/smoke.sh          # 24 checks
+./scripts/smoke.sh          # 28 checks
 ```
 
 ## Deploy to Render
@@ -174,9 +181,9 @@ src/main/java/com/starkgroup/vms/
   user/        operator entity + repository
   vehicle/     entity, repository, service, controller, DTOs, enums
 src/main/resources/   application.yml, application-prod.properties
-src/test/             45 unit / API / integration tests
+src/test/             55 unit / API / integration tests
 docs/                 API contract, architecture, testing notes
-scripts/smoke.sh      24-check live REST journey
+scripts/smoke.sh      28-check live REST journey
 Dockerfile            Render image
 render.yaml           Render blueprint
 ```
