@@ -15,8 +15,8 @@ the separate `vms-frontend` repository only talks to it over HTTP.
 
 ## API
 
-Base URL `http://localhost:8080`. Every endpoint except `POST /auth/login` and
-`GET /health` requires `Authorization: Bearer <JWT>`.
+Base URL `http://localhost:8080`. Every endpoint except `POST /auth/login`,
+`POST /auth/register` and `GET /health` requires `Authorization: Bearer <JWT>`.
 
 | Method | Path | Notes |
 |---|---|---|
