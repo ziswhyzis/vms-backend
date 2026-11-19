@@ -48,7 +48,8 @@ Cross-cutting:
   (`timestamp`, `status`, `error`, `message`, `path`, optional `fieldErrors`).
 - `RestAuthenticationEntryPoint` / `RestAccessDeniedHandler` emit JSON `401`/`403`
   instead of Spring's default HTML.
-- `DataSeeder` seeds `admin` + 24 vehicles only when the tables are empty.
+- `DataSeeder` seeds `admin` plus 48 Bangladeshi sample vehicles; rows are
+  inserted only when their vehicle number is missing, so re-runs are safe.
 
 ### Security model
 

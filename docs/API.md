@@ -133,8 +133,8 @@ Returns the current operator profile (`UserResponse`).
   ],
   "number": 0,
   "size": 10,
-  "totalElements": 24,
-  "totalPages": 3,
+  "totalElements": 48,
+  "totalPages": 5,
   "last": false
 }
 ```

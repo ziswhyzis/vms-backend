@@ -13,7 +13,8 @@ live REST journey against a running server.
 | Backend CORS | same run | 4 | ✅ pass |
 | Backend DB constraint | same run | 1 | ✅ pass |
 | Backend full journey | same run | 1 | ✅ pass |
-| **Backend total** | | **55** | **✅ 55/55** |
+| Backend seeder | same run | 7 | ✅ pass |
+| **Backend total** | | **62** | **✅ 62/62** |
 | Flutter static analysis | `flutter analyze` (frontend repo) | — | ✅ 0 issues |
 | Flutter widget/contract | `flutter test` (frontend repo) | 47 | ✅ 47/47 |
 | Live REST smoke | `./scripts/smoke.sh` | 28 | ✅ 28/28 |
@@ -35,6 +36,7 @@ Spring Boot 3.5.3, H2 2.3.232.
 | `CorsApiIT` | `@SpringBootTest` + MockMvc | any `localhost` port is accepted by pattern; the configured Netlify origin is accepted exactly; an unknown origin gets `403` with no `Access-Control-Allow-Origin`; simple requests from allowed origins carry the header |
 | `UniqueConstraintIT` | `@DataJpaTest` (real H2) | the unique index rejects a duplicate number even when the service check is bypassed |
 | `FullJourneyIT` | `@SpringBootTest` + MockMvc | login → register → list → duplicate 409 → edit → read → delete → 404 → empty last page |
+| `DataSeederIT` | `@SpringBootTest` | 48 seeded vehicles with Bangladeshi plate shapes across 8 cities; representative row fields; re-running adds nothing; existing rows are never overwritten; BCrypt admin; no operator when the password is blank |
 | `scripts/smoke.sh` | Live HTTP (curl) | the same journey against the packaged jar on `:8080`, plus pagination shape checks |
 
 Run:
