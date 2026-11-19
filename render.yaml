@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: stark-group-vms-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: APP_JWT_SECRET
+        generateValue: true
+      - key: APP_CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: APP_SEED_DATA
+        value: "true"
+      # Random bootstrap password for the first operator. Read it from the
+      # Render dashboard (Environment tab) to sign in for the first time.
+      - key: APP_SEED_ADMIN_PASSWORD
+        generateValue: true
+      - key: DB_HOST
+        fromDatabase:
+          name: stark-group-vms-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: stark-group-vms-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: stark-group-vms-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: stark-group-vms-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: stark-group-vms-db
+          property: password
+
+databases:
+  - name: stark-group-vms-db
+    plan: free
+    databaseName: stark_vms
+    user: stark_vms

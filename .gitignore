@@ -1,0 +1,19 @@
+# Maven build output
+target/
+*.class
+*.jar
+
+# Local H2 database (never commit data)
+data/
+*.mv.db
+*.trace.db
+
+# Editor metadata
+.settings/
+.classpath
+.project
+*.iml
+.idea/
+
+# Logs
+*.log

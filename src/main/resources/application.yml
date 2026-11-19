@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: stark-group-vms
+  datasource:
+    # Local development uses a file-based H2 SQL database: data survives restarts.
+    # Production uses PostgreSQL through the `prod` profile (see application-prod.properties).
+    url: jdbc:h2:file:./data/vmsdb;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${PORT:8080}
+  error:
+    # Internals never reach the client; every API error is shaped by
+    # GlobalExceptionHandler's envelope instead.
+    include-message: never
+
+app:
+  jwt:
+    # Override in production with APP_JWT_SECRET (at least 32 bytes).
+    secret: ${APP_JWT_SECRET:stark-group-vms-local-development-secret-key-please-change}
+    expiration-minutes: ${APP_JWT_EXPIRATION_MINUTES:480}
+  cors:
+    # Comma-separated exact origins or wildcard patterns. Patterns such as
+    # http://localhost:[*] keep local development working when the Flutter dev
+    # server picks a random port. Production sets an explicit Netlify origin.
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:[*],http://127.0.0.1:[*]}
+  seed:
+    enabled: ${APP_SEED_DATA:true}
+    # Bootstrap operator. The default password exists for local development
+    # only; production supplies APP_SEED_ADMIN_PASSWORD (render.yaml generates
+    # a random one) and never ships this default.
+    admin-username: ${APP_SEED_ADMIN_USERNAME:admin}
+    admin-password: ${APP_SEED_ADMIN_PASSWORD:admin123}
+    admin-name: ${APP_SEED_ADMIN_NAME:Stark Group Administrator}
+
+logging:
+  level:
+    com.starkgroup.vms: INFO
