@@ -10,7 +10,7 @@ the separate `vms-frontend` repository only talks to it over HTTP.
 | Framework | Spring Boot 3.5 (Web, Data JPA, Security, Validation) |
 | Database | H2 file database locally, PostgreSQL in production |
 | Auth | Stateless JWT (HS256) with BCrypt-hashed passwords |
-| Tests | JUnit 5 + MockMvc + Spring Data tests (55) |
+| Tests | JUnit 5 + MockMvc + Spring Data tests (62) |
 | Deploy | Render (Docker) + Render PostgreSQL |
 
 ## API
@@ -51,8 +51,8 @@ A page response always has exactly these keys:
   ],
   "number": 0,
   "size": 10,
-  "totalElements": 24,
-  "totalPages": 3,
+  "totalElements": 48,
+  "totalPages": 5,
   "last": false
 }
 ```
