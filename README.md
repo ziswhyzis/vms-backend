@@ -83,31 +83,6 @@ Full request/response examples: [`docs/API.md`](docs/API.md).
 - `page` is clamped to `>= 0`, `size` to `1..100`, and `sort` is checked against
   an allow-list.
 
-## Run it
-
-```bash
-mvn spring-boot:run
-# or
-mvn -q package && java -jar target/vms-backend-1.0.0.jar
-```
-
-- API: <http://localhost:8080>
-- Health: <http://localhost:8080/health>
-- H2 console (dev only): <http://localhost:8080/h2-console>
-  (JDBC `jdbc:h2:file:./data/vmsdb`, user `sa`, empty password)
-
-First run seeds 24 vehicles and one operator. The local bootstrap credentials
-are `admin` / `admin123`; both the username and password come from configuration
-and production supplies its own password (see below).
-
-If no account exists at all — for example after a fresh deployment without a
-bootstrap password — open the client and choose **Create an account**. The
-public `POST /auth/register` endpoint creates a BCrypt-hashed operator and signs
-it in immediately.
-
-The H2 file lives at `data/vmsdb` and is git-ignored. Delete `data/` to start
-from a clean database.
-
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -127,63 +102,3 @@ No credential is committed to this repository. Locally the defaults above are
 used; in the `prod` profile the JWT secret and the bootstrap password are
 mandatory environment variables, and the application refuses to start without
 them rather than falling back to a development value.
-
-## Tests
-
-```bash
-mvn test      # 55 tests
-```
-
-| Suite | What it proves |
-|---|---|
-| `VehicleServiceTest` | Duplicate rule, normalization, field mapping, clamping, sort allow-list (repository mocked) |
-| `VehicleApiIT` | Full HTTP contract: pagination shape, CRUD, 409/400/404, sort validation |
-| `AuthApiIT` | Login, bad credentials, `/auth/me`, token rejection, public health |
-| `RegisterApiIT` | Self-service sign-up, duplicate username, validation, BCrypt storage, protected access |
-| `CorsApiIT` | Any `localhost` port allowed, production origin exact, unknown origin `403` |
-| `UniqueConstraintIT` | The SQL unique index rejects duplicates bypassing the service |
-| `FullJourneyIT` | Login → register → list → duplicate → edit → delete |
-
-A live smoke script exercises the packaged jar over real HTTP:
-
-```bash
-java -jar target/vms-backend-1.0.0.jar &
-./scripts/smoke.sh          # 28 checks
-```
-
-## Deploy to Render
-
-`render.yaml` is ready for a repository whose root is this folder. It creates:
-
-- `stark-group-vms-api` — Docker web service, health check `/health`
-- `stark-group-vms-db` — managed PostgreSQL
-
-1. Push this project to a GitHub repository (for example `vms-backend`).
-2. Render → **New → Blueprint** → pick the repo. Render reads `render.yaml`.
-3. Set `APP_CORS_ALLOWED_ORIGINS` to your Netlify origin
-   (`https://<your-site>.netlify.app`) — it is marked `sync: false` so you enter
-   it in the dashboard.
-4. Deploy, then verify `https://<api>.onrender.com/health` returns
-   `{"status":"UP"}`.
-5. Read the generated `APP_SEED_ADMIN_PASSWORD` from the service's
-   **Environment** tab and use it with `admin` to sign in the first time.
-
-## Project layout
-
-```
-src/main/java/com/starkgroup/vms/
-  auth/        login endpoint, service, DTOs
-  common/      PageResponse (Spring Page shape)
-  config/      security, CORS, demo data seeder
-  error/       typed exceptions + global handler
-  health/      public health endpoint
-  security/    JWT service, filter, entry points
-  user/        operator entity + repository
-  vehicle/     entity, repository, service, controller, DTOs, enums
-src/main/resources/   application.yml, application-prod.properties
-src/test/             55 unit / API / integration tests
-docs/                 API contract, architecture, testing notes
-scripts/smoke.sh      28-check live REST journey
-Dockerfile            Render image
-render.yaml           Render blueprint
-```
