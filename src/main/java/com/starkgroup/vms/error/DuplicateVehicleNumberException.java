@@ -2,6 +2,8 @@ package com.starkgroup.vms.error;
 
 public class DuplicateVehicleNumberException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     private final String vehicleNumber;
 
     public DuplicateVehicleNumberException(String vehicleNumber) {
